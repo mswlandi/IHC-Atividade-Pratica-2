@@ -21,8 +21,6 @@ import Geolocation from 'react-native-geolocation-service';
 const SensorManager = NativeModules.SensorManager;
 
 
-const colorScheme = Appearance.getColorScheme();
-const Stack = createNativeStackNavigator();
 
 const requestGPSPermission = async () => {
   try {
@@ -31,7 +29,7 @@ const requestGPSPermission = async () => {
       {
         title: "Permissão do uso do GPS para Atividade Prática 2",
         message:
-          "Para usar o GPS você precisa conceder a permissão do uso da Geolocalização",
+        "Para usar o GPS você precisa conceder a permissão do uso da Geolocalização",
         buttonNeutral: "Me pergunte depois",
         buttonNegative: "Cancelar",
         buttonPositive: "OK"
@@ -48,9 +46,26 @@ const requestGPSPermission = async () => {
   }
 };
 
-const App = ({ navigation }) => {
+const colorScheme = Appearance.getColorScheme();
+const Stack = createNativeStackNavigator();
+
+const App = () => {
+  return (
+    <NavigationContainer theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Tela"
+          component={Tela}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+const Tela = ({ navigation }) => {
   const [light, setLight] = useState(0);
-  const [proximity, setProximity] = useState(0);
+  const [acc, setAcc] = useState({ x: 0, y: 0, z: 0 });
+  const [gyro, setGyro] = useState({ x: 0, y: 0, z: 0 });
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const watchId = useRef(null);
 
@@ -97,49 +112,74 @@ const App = ({ navigation }) => {
     setLight(data.light);
   });
 
-  SensorManager.startProximity(100);
-  DeviceEventEmitter.addListener('Proximity', function (data) {
-    setProximity(data.value);
+  DeviceEventEmitter.addListener('Gyroscope', function (data) {
+    setGyro(data);
   });
+  SensorManager.startGyroscope(100);
+
+  SensorManager.startAccelerometer(100);
+  DeviceEventEmitter.addListener('Accelerometer', function (data) {
+    setAcc(data);
+    if (data.z < -7) {
+      navigation.navigate('Activity 2')
+    }
+  });
+
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container1}>
       <TextInput
-        style={[styles.input, styles.margin]}
+        style={[styles.input, styles.margin, { color: colors.text }]}
         defaultValue={`Luminosidade: ${light.toFixed(3)}`}
         editable={false}
       />
+      <Text style={{ color: colors.text }}>Acelerometro:</Text>
+      <View style={styles.container2}>
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`X: ${acc.x.toFixed(3)}`}
+          editable={false}
+        />
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`Y: ${acc.y.toFixed(3)}`}
+          editable={false}
+        />
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`Z: ${acc.z.toFixed(3)}`}
+          editable={false}
+        />
+      </View>
+      <Text style={{ color: colors.text }}>Giroscópio:</Text>
+      <View style={styles.container2}>
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`X: ${gyro.x.toFixed(3)}`}
+          editable={false}
+        />
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`Y: ${gyro.y.toFixed(3)}`}
+          editable={false}
+        />
+        <TextInput
+          style={[styles.acel, styles.margin, { color: colors.text }]}
+          defaultValue={`Z: ${gyro.z.toFixed(3)}`}
+          editable={false}
+        />
+      </View>
       <TextInput
-        style={[styles.input, styles.margin]}
-        defaultValue={`Proximidade: ${proximity.toFixed(3)}`}
-        editable={false}
-      />
-      <TextInput
-        style={[styles.input, styles.margin]}
+        style={[styles.input, styles.margin, { color: colors.text }]}
         defaultValue={`Latitude: ${location.latitude}`}
         editable={false}
       />
       <TextInput
-        style={[styles.input, styles.margin]}
-        defaultValue={`Latitude: ${location.longitude}`}
+        style={[styles.input, styles.margin, { color: colors.text }]}
+        defaultValue={`Longitude: ${location.longitude}`}
         editable={false}
       />
-      <TouchableOpacity
-        onPress={requestGPSPermission}
-        style={[styles.button, styles.margin]}
-      >
-        <Text>Pedir Permissão</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const ShowMessageScreen = ({ navigation }) => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={styles.container2}>
-      <Text style={{ color: colors.text }}>Vire o celular para cima!</Text>
     </View>
   );
 };
@@ -149,10 +189,24 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 30,
   },
+  container2: {
+    flexDirection: 'row',
+  },
+  acel: {
+    borderColor: 'gray',
+    borderWidth: 1,
+
+    height: 40,
+    paddingLeft: 10,
+    margin: 3,
+
+    flexBasis: "auto",
+    flexGrow: 1,
+    flexShrink: 1,
+  },
   input: {
     borderColor: 'gray',
     borderWidth: 1,
-    color: 'white',
     width: '100%',
 
     height: 40,
