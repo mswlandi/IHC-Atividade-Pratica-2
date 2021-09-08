@@ -52,17 +52,17 @@ const AccelerometerScreen = ({ navigation }) => {
   return (
     <View style={styles.container1}>
       <TextInput
-        style={[styles.input, styles.margin]}
+        style={[styles.input, styles.margin, { color: colors.text }]}
         defaultValue={`X: ${acc.x.toFixed(3)}`}
         editable={false}
       />
       <TextInput
-        style={[styles.input, styles.margin]}
+        style={[styles.input, styles.margin, { color: colors.text }]}
         defaultValue={`Y: ${acc.y.toFixed(3)}`}
         editable={false}
       />
       <TextInput
-        style={[styles.input, styles.margin]}
+        style={[styles.input, styles.margin, { color: colors.text }]}
         defaultValue={`Z: ${acc.z.toFixed(3)}`}
         editable={false}
       />
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
   input: {
     borderColor: 'gray',
     borderWidth: 1,
-    color: 'white',
 
     height: 40,
     paddingLeft: 10,
